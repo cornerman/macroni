@@ -53,6 +53,8 @@ class MessageMatcher[M <: Message](matcher: Matcher[String]) extends Matcher[M] 
     val result = matcher(createExpectable(expectable.value.msg))
     result.setExpectable(expectable).asInstanceOf[MatchResult[S]]
   }
+
+  override def toString = matcher.toString
 }
 
 class MessagesMatcher[M <: Message](matcher: Matcher[Seq[M]]) extends Matcher[M] {
