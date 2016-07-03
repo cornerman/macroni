@@ -17,9 +17,9 @@ class SeqMatcherOfMatchers[T](matchers: Seq[Matcher[T]]) extends Matcher[Seq[T]]
       MatchFailure("", reason + ":" + EOL + misses, createExpectable(m))
     }
 
-    val missingResults = missingMatchers.map(failure("Got less values than expected, missing", missingMatchers)) ++ missingValues.map(failure("Got more values than expected", missingValues))
+    val missingResults = missingMatchers.map(failure("Got less than expected, missing", missingMatchers)) ++ missingValues.map(failure("Got more than expected", missingValues))
 
-    MatchResult.sequence(results ++ missingResults).asInstanceOf[MatchResult[S]] // what else?
+    result(MatchResult.sequence(results ++ missingResults), expectable)
   }
 }
 

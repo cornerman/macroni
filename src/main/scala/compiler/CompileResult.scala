@@ -5,31 +5,32 @@ import scala.reflect.runtime.universe.{Tree, NoPosition}
 
 sealed trait CompileResult {
   val source: Tree
-  val messages: Seq[Message]
+  val notices: Seq[Notice]
 
-  def infos = messages collect { case m: Info => m }
-  def warnings = messages collect { case m: Warning => m }
-  def errors = messages collect { case m: Error => m }
+  def infos = notices collect { case m: Info => m }
+  def warnings = notices collect { case m: Warning => m }
 }
 
 object CompileResult {
-  def apply(source: Tree, generated: Tree, reporter: FrontEnd): CompileResult = {
+  def reportedMessages(reporter: FrontEnd) = {
     val messages = reporter.infos.map(Message(reporter)).toSeq
-    if (reporter.hasErrors)
-      CompileFailure(source, messages)
-    else
-      CompileSuccess(source, generated, messages)
+    val notices = messages collect { case e: Notice => e }
+    val errors = messages collect { case e: Error => e }
+    (notices, errors)
+  }
+
+  def apply(source: Tree, generated: Tree, reporter: FrontEnd): CompileResult = {
+    val (notices, errors) = reportedMessages(reporter)
+    if (errors.isEmpty) CompileSuccess(source, generated, notices)
+    else CompileFailure(source, errors, notices)
   }
 
   def apply(source: Tree, e: Throwable, reporter: FrontEnd): CompileResult = {
-    CompileFailure(source, reporter.infos.map(Message(reporter)).toSeq :+ Error(NoPosition, e.getMessage))
+    val (notices, errors) = reportedMessages(reporter)
+    val thrownError = Error(NoPosition, e.getMessage)
+    CompileFailure(source, errors :+ thrownError, notices)
   }
 }
 
-case class CompileSuccess(source: Tree, generated: Tree, messages: Seq[Message]) extends CompileResult {
-  assert(errors.isEmpty)
-}
-
-case class CompileFailure(source: Tree, messages: Seq[Message]) extends CompileResult {
-  assert(errors.nonEmpty)
-}
+case class CompileSuccess(source: Tree, generated: Tree, notices: Seq[Notice]) extends CompileResult
+case class CompileFailure(source: Tree, errors: Seq[Error], notices: Seq[Notice]) extends CompileResult

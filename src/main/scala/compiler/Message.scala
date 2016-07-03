@@ -17,6 +17,8 @@ object Message {
   }
 }
 
-case class Info(pos: Position, msg: String) extends Message { val severity = "INFO" }
-case class Warning(pos: Position, msg: String) extends Message { val severity = "WARN" }
+trait Notice extends Message
+
+case class Info(pos: Position, msg: String) extends Notice { val severity = "INFO" }
+case class Warning(pos: Position, msg: String) extends Notice { val severity = "WARN" }
 case class Error(pos: Position, msg: String) extends Message { val severity = "ERROR" }

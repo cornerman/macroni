@@ -9,9 +9,9 @@ import scala.reflect.runtime.universe.{showCode, Tree}
 object ErrorDescription {
   import Colors._
 
-  def code(tree: Tree) = highlight(showCode(tree))
+  private def code(tree: Tree) = highlight(showCode(tree))
 
-  def error(sections: (String, String)*) = {
+  private def error(sections: (String, String)*) = {
     sections.map { case (head, body) =>
       bold(red(s"--- $head: ---")) + EOL + body
     }.mkString(EOL) + EOL + bold(red("----------")) + EOL
