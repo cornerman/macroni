@@ -57,12 +57,6 @@ class MessageMatcher[M <: Message](matcher: Matcher[String]) extends Matcher[M] 
   override def toString = matcher.toString
 }
 
-class MessagesMatcher[M <: Message](matcher: Matcher[Seq[M]]) extends Matcher[M] {
-  override def apply[S <: M](expectable: Expectable[S]): MatchResult[S] = {
-    ???
-  }
-}
-
 class ValueCheckMatcher[T](checker: ValueCheck[T]) extends Matcher[T] {
   override def apply[S <: T](expectable: Expectable[S]): MatchResult[S] = {
     val checked = checker.check(expectable.value)
@@ -92,17 +86,24 @@ trait CompileMatcher[M <: CompileMatcher[M]] extends Matcher[CompileResult] {
   def canWarn = copy(hasValidErrors, hasValidWarnings = CheckMatchers.alwaysOk)
   def withWarning = copy(hasValidErrors, hasValidWarnings = CheckMatchers.once)
   def withWarnings = copy(hasValidErrors, hasValidWarnings = CheckMatchers.nonEmpty)
-  def withWarning(msg: String): M = withWarnings(msg)
-  def withWarning(msg: Matcher[String]) = withWarnings(msg)
-  def withWarnings(msg: String, msgs: String*): M = withWarnings(AnyMatchers.beEqualTo(msg), msgs.map(m => AnyMatchers.beEqualTo(m)): _*)
-  def withWarnings(msg: Matcher[String], msgs: Matcher[String]*) = copy(hasValidErrors, hasValidWarnings = new SeqMatcherOfMatchers((msg +: msgs).map(m => new MessageMatcher[Warning](m))))
+  def matchWarning(matcher: Matcher[String]) = matchWarnings(matcher)
+  def matchWarnings(matchers: Matcher[String]*) = copy(hasValidErrors, hasValidWarnings = new SeqMatcherOfMatchers(matchers.map(m => new MessageMatcher[Warning](m))))
+
+  def withWarning(matcher: Matcher[String]): SuccessCompileMatcher = macro NamedMatcherMacro.compileWithWarning
+  def withWarnings(matchers: Matcher[String]*): SuccessCompileMatcher = macro NamedMatcherMacro.compileWithWarnings
 
   def withError = new FailureCompileMatcher(CheckMatchers.once, hasValidWarnings)
   def withErrors = new FailureCompileMatcher(CheckMatchers.nonEmpty, hasValidWarnings)
-  def withError(msg: String): FailureCompileMatcher = withErrors(msg)
-  def withError(msg: Matcher[String]) = withErrors(msg)
-  def withErrors(msg: String, msgs: String*): FailureCompileMatcher = withErrors(AnyMatchers.beEqualTo(msg), msgs.map(m => AnyMatchers.beEqualTo(m)): _*)
-  def withErrors(msg: Matcher[String], msgs: Matcher[String]*) = new FailureCompileMatcher(new SeqMatcherOfMatchers((msg +: msgs).map(m => new MessageMatcher[Error](m))), hasValidWarnings)
+  def matchError(matcher: Matcher[String]) = matchErrors(matcher)
+  def matchErrors(matchers: Matcher[String]*) = new FailureCompileMatcher(new SeqMatcherOfMatchers(matchers.map(m => new MessageMatcher[Error](m))), hasValidWarnings)
+
+  def withError(matcher: Matcher[String]): FailureCompileMatcher = macro NamedMatcherMacro.compileWithError
+  def withErrors(matchers: Matcher[String]*): FailureCompileMatcher = macro NamedMatcherMacro.compileWithErrors
+}
+
+class NamedMatcher[T](name: String, matcher: Matcher[T]) extends Matcher[T] {
+  override def apply[S <: T](expectable: Expectable[S]): MatchResult[S] = matcher(expectable)
+  override def toString = name
 }
 
 class SuccessCompileMatcher(val hasValidWarnings: Matcher[Seq[Warning]] = CheckMatchers.isEmpty) extends CompileMatcher[SuccessCompileMatcher] {
@@ -114,7 +115,7 @@ class SuccessCompileMatcher(val hasValidWarnings: Matcher[Seq[Warning]] = CheckM
   def containing(snippets: ExpectedCode*) = this and (new ContainsMatcher(snippets))
 }
 
-class FailureCompileMatcher(val hasValidErrors: Matcher[Seq[Error]], val hasValidWarnings: Matcher[Seq[Warning]]) extends CompileMatcher[FailureCompileMatcher] {
+class FailureCompileMatcher(val hasValidErrors: Matcher[Seq[Error]] = CheckMatchers.nonEmpty, val hasValidWarnings: Matcher[Seq[Warning]]) extends CompileMatcher[FailureCompileMatcher] {
   def copy(hasValidErrors: Matcher[Seq[Error]], hasValidWarnings: Matcher[Seq[Warning]]) = new FailureCompileMatcher(hasValidErrors, hasValidWarnings)
 }
 

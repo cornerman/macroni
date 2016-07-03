@@ -14,9 +14,8 @@ trait CompileSpec extends Specification {
   def compile = new SuccessCompileMatcher()
   def canWarn = compile.canWarn
   def warn = compile.withWarnings
-  def warn(msg: String, msgs: String*) = compile.withWarnings(msg, msgs: _*)
-  def warn(msg: Matcher[String], msgs: Matcher[String]*) = compile.withWarnings(msg, msgs: _*)
   def abort = compile.withErrors
-  def abort(msg: String, msgs: String*) = compile.withErrors(msg, msgs: _*)
-  def abort(msg: Matcher[String], msgs: Matcher[String]*) = compile.withErrors(msg, msgs: _*)
+
+  def warn(matchers: Matcher[String]*): SuccessCompileMatcher = macro NamedMatcherMacro.compileWithWarnings
+  def abort(matchers: Matcher[String]*): FailureCompileMatcher = macro NamedMatcherMacro.compileWithErrors
 }

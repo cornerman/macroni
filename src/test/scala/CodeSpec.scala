@@ -25,7 +25,7 @@ class CodeSpec extends CompileSpec {
   "duplicate hello doesn't compile" >> {
     q"@derive.hello object A { val hello = 1 }" must abort
     q"@derive.hello object A { val hello = 1 }" must not(compile)
-    q"@derive.hello object A { val hello = 1 }" must abort(startWith("reflective typecheck has failed: method hello is defined twice")).canWarn
+    q"@derive.hello object A { val hello = 1 }" must abort(startWith("reflective typecheck has failed: method hello is defined twice"), startWith("asd"))
     q"@derive.hello object A { val hello = 1 }" must compile.withError
   }
 
