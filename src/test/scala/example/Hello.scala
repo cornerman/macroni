@@ -1,4 +1,4 @@
-package derive
+package example
 
 import scala.reflect.macros.whitebox.Context
 import scala.language.experimental.macros

@@ -1,4 +1,4 @@
-package helpers
+package macroni.macros
 
 import reflect.macros.blackbox.Context
 
@@ -8,7 +8,7 @@ class ContextTools[C <: Context](val context: C) {
   def mkList[I,R](values: List[I])(implicit lift: Liftable[I]): context.Expr[List[R]] = context.Expr(q"List(..$values)")
 
   def namedValue(name: String, value: context.Tree): context.Tree = {
-    q"helpers.NamedValue($name, $value)"
+    q"macroni.macros.NamedValue($name, $value)"
   }
 
   def termToNamedValue(term: context.TermName): context.Tree = {
@@ -21,7 +21,6 @@ class ContextTools[C <: Context](val context: C) {
       case v@q"CodeSpec.this.StringToMatcher($actual)" => namedValue(actual.toString, v)
       case v@Select(_, term: TermName) => termToNamedValue(term)
       case v@Ident(term: TermName) => termToNamedValue(term)
-      case v: Literal => namedValue(v.toString, v)
       case v => namedValue(v.toString, v)
     }
   }

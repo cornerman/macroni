@@ -1,4 +1,4 @@
-package helpers
+package macroni.macros
 
 import reflect.macros.blackbox.Context
 
@@ -9,7 +9,7 @@ object NamedMatcherMacro {
     val tools = ContextTools(c)
     import c.universe._, tools._
     val values = args.map(treeToNamedValue).toList
-    q"new helpers.SuccessCompileMatcher().${TermName(func)}(${values}.map(nv => new helpers.NamedMatcher(nv.name, nv.value)): _*)"
+    q"new macroni.matcher.SuccessCompileMatcher().${TermName(func)}(${values}.map(nv => new macroni.matcher.NamedMatcher(nv.name, nv.value)): _*)"
   }
 
   def compileWithWarning(c: Context)(matcher: c.Tree): c.Tree = call("matchWarnings")(c)(Seq(matcher))

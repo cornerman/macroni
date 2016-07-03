@@ -1,4 +1,4 @@
-package compiler
+package macroni.compiler
 
 import scala.tools.reflect.FrontEnd
 import scala.reflect.runtime.universe.Tree
@@ -22,8 +22,8 @@ object Compiler {
     val toolbox = currentMirror.mkToolBox(reporter, Config.options)
 
     Try(toolbox.typecheck(tree)) match {
-      case Success(typedTree) => CompileSuccess(tree, typedTree, reporter)
-      case Failure(e) => CompileFailure(tree, e, reporter)
+      case Success(typedTree) => CompileResult(tree, typedTree, reporter)
+      case Failure(e) => CompileResult(tree, e, reporter)
     }
   }
 }

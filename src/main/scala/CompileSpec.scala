@@ -1,14 +1,17 @@
-package helpers
+package macroni
 
-import compiler._
-import scala.reflect.runtime.universe._
+import macroni.compare.With
+import macroni.compiler.{CompileResult, CompileFailure, CompileSuccess}
+import macroni.matcher.{CompileTreeMatcher, FailureCompileMatcher, SuccessCompileMatcher}
+import macroni.macros.NamedMatcherMacro
+
+import scala.reflect.runtime.universe.Tree
 import org.specs2.mutable.Specification
-import org.specs2.matcher._
+import org.specs2.matcher.{AnyMatchers, Matcher}
 
 trait CompileSpec extends Specification {
   implicit def TreeToWith(t: Tree): With = With(t)
-  implicit def StringToWith(code: String): With = With(q"$code")
-  implicit def CompileMatcherToCompileTreeMatcher(matcher: Matcher[CompileResult]) = new CompileTreeMatcher(matcher)
+  implicit def MatcherToCompileTreeMatcher(matcher: Matcher[CompileResult]): CompileTreeMatcher = new CompileTreeMatcher(matcher)
   implicit def StringToMatcher(msg: String): Matcher[String] = AnyMatchers.beEqualTo(msg)
 
   def compile = new SuccessCompileMatcher()

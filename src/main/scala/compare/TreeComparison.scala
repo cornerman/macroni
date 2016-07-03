@@ -1,10 +1,6 @@
-package helpers
+package macroni.compare
 
-import scala.reflect.runtime.universe._
-
-trait ExpectedCode { val code: Tree }
-case class With(code: Tree) extends ExpectedCode
-case class Not(code: Tree) extends ExpectedCode
+import scala.reflect.runtime.universe.{showCode, Tree}
 
 object TreeComparison {
   val wildcardRegex = "_\\$\\d+".r

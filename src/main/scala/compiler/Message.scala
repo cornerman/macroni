@@ -1,7 +1,6 @@
-package compiler
+package macroni.compiler
 
 import scala.tools.reflect.FrontEnd
-import scala.reflect.runtime.universe.Tree
 import scala.reflect.api.Position
 
 sealed trait Message {

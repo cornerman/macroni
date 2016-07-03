@@ -1,11 +1,13 @@
-package helpers
+package macroni.helpers
 
-import compiler.Message
-import scala.reflect.runtime.universe._
+import macroni.compiler.Message
+import macroni.compare.{ExpectedCode, Not, With}
+
+import scala.compat.Platform.EOL
+import scala.reflect.runtime.universe.{showCode, Tree}
 
 object ErrorDescription {
   import Colors._
-  import scala.compat.Platform.EOL
 
   def code(tree: Tree) = highlight(showCode(tree))
 

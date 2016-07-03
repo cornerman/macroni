@@ -1,4 +1,4 @@
-package helpers
+package macroni.helpers
 
 object Colors {
   def bold(s: String) = s"\u001b[1m${ s }\u001b[0m"
