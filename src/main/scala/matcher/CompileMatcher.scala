@@ -9,7 +9,7 @@ import scala.reflect.runtime.universe.Tree
 
 object CheckMatchers {
   //TODO: set messages
-  def alwaysOk[T]: Matcher[T] = new ValueCheckMatcher(ValueCheck.alwaysOk)
+  def alwaysOk[T]: Matcher[T] = new AlwaysMatcher[T]
   def isEmpty[T]: Matcher[Seq[T]] = AnyMatchers.beEmpty
   def once[T]: Matcher[Seq[T]] = TraversableMatchers.haveSize(1)
   def nonEmpty[T]: Matcher[Seq[T]] = isEmpty.not

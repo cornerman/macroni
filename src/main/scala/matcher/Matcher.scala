@@ -23,13 +23,6 @@ class SeqMatcherOfMatchers[T](matchers: Seq[Matcher[T]]) extends Matcher[Seq[T]]
   }
 }
 
-class ValueCheckMatcher[T](checker: ValueCheck[T]) extends Matcher[T] {
-  override def apply[S <: T](expectable: Expectable[S]): MatchResult[S] = {
-    val checked = checker.check(expectable.value)
-    result(checked.isSuccess, checked.message, checked.expected, expectable)
-  }
-}
-
 class NamedMatcher[T](name: String, matcher: Matcher[T]) extends Matcher[T] {
   override def apply[S <: T](expectable: Expectable[S]): MatchResult[S] = matcher(expectable)
   override def toString = name
