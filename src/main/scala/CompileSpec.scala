@@ -9,9 +9,11 @@ import org.specs2.mutable.Specification
 import org.specs2.matcher.{AnyMatchers, Matcher}
 
 trait CompileSpec extends Specification {
-  implicit def TreeToWith(t: Tree): With = With(t)
   implicit def MatcherToCompileTreeMatcher(matcher: Matcher[CompileResult]): CompileTreeMatcher = new CompileTreeMatcher(matcher)
   implicit def StringToMatcher(msg: String): Matcher[String] = AnyMatchers.beEqualTo(msg)
+  implicit def TreeToWith(t: Tree): With = With(t)
+
+  def not(t: Tree) = Not(t)
 
   def compile = new SuccessCompileMatcher()
   def canWarn = compile.canWarn

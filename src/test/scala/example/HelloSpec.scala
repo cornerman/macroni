@@ -13,7 +13,8 @@ class HelloSpec extends CompileSpec {
 
   "simple hello compiles containing" >> {
     q"""@example.hello object A""" must compile.containing(
-      q"""def hello: String"""
+      q"""def hello: String""",
+      not(q"""Int""")
     )
   }
 
