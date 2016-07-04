@@ -1,8 +1,7 @@
 package macroni
 
-import macroni.compare.With
 import macroni.compiler.{CompileResult, CompileFailure, CompileSuccess}
-import macroni.matcher.{CompileTreeMatcher, FailureCompileMatcher, SuccessCompileMatcher}
+import macroni.matcher._
 import macroni.macros.NamedMatcherMacro
 
 import scala.reflect.runtime.universe.Tree

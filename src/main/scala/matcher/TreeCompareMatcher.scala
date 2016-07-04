@@ -1,21 +1,23 @@
 package macroni.matcher
 
 import macroni.compiler.{CompileResult, CompileSuccess, CompileFailure}
-import macroni.compare.ExpectedCode
-import macroni.compare.TreeComparison._
-import macroni.helpers.ErrorDescription._
+import macroni.helpers.MatchDescription._
 
 import org.specs2.matcher._
 import scala.compat.Platform.EOL
-import scala.reflect.runtime.universe.Tree
+import scala.reflect.runtime.universe.{showCode, Tree}
+
+trait ExpectedCode { val code: Tree }
+case class With(code: Tree) extends ExpectedCode
+case class Not(code: Tree) extends ExpectedCode
 
 class EqualsMatcher(expected: Tree) extends Matcher[CompileResult] {
   override def apply[S <: CompileResult](expectable: Expectable[S]): MatchResult[S] = {
     expectable.value match {
-      case CompileSuccess(source, generated, _) =>
-        result(equalsSnippet(generated, expected), "", compareError(source, generated, expected), expectable)
-      case CompileFailure(source, errors, notices) =>
-        MatchFailure("", compileError(source, notices ++ errors), expectable)
+      case CompileSuccess(source, gen, _) =>
+        val matchResult = AnyMatchers.beEqualTo(showCode(expected))(createExpectable(showCode(gen)))
+        result(matchResult, expectable)
+      case c: CompileFailure => MatchFailure("", compileError(c), expectable)
     }
   }
 }
@@ -23,12 +25,13 @@ class EqualsMatcher(expected: Tree) extends Matcher[CompileResult] {
 class ContainsMatcher(snippets: Seq[ExpectedCode]) extends Matcher[CompileResult] {
   override def apply[S <: CompileResult](expectable: Expectable[S]): MatchResult[S] = {
     expectable.value match {
-      case CompileSuccess(source, generated, _) =>
-        val failures = unexpectedSnippets(source, generated, snippets)
-        val failMsg = failures.map(failure => compareError(source, generated, failure)).mkString(EOL)
-        result(failures.isEmpty, "", failMsg, expectable)
-      case CompileFailure(source, errors, notices) =>
-        MatchFailure("", compileError(source, notices ++ errors), expectable)
+      case CompileSuccess(source, gen, _) =>
+        val matchResults = snippets.map {
+          case With(code) => StringMatchers.contain(showCode(code))(createExpectable(showCode(gen)))
+          case Not(code) => StringMatchers.contain(showCode(code)).not(createExpectable(showCode(gen)))
+        }
+        result(MatchResult.sequence(matchResults), expectable)
+      case c: CompileFailure => MatchFailure("", compileError(c), expectable)
     }
   }
 }

@@ -1,9 +1,8 @@
 package macroni.matcher
 
 import macroni.compiler._
-import macroni.compare.ExpectedCode
 import macroni.macros.NamedMatcherMacro
-import macroni.helpers.ErrorDescription._
+import macroni.helpers.MatchDescription._
 
 import org.specs2.matcher._
 import scala.reflect.runtime.universe.Tree
@@ -61,11 +60,10 @@ class SuccessCompileMatcher(val hasValidWarnings: Matcher[Seq[Warning]] = CheckM
 
   def apply[S <: CompileResult](expectable: Expectable[S]): MatchResult[S] = {
     expectable.value match {
-      case c@CompileSuccess(_, gen, _) =>
+      case c: CompileSuccess =>
         val matchedWarnings = hasValidWarnings(createExpectable(c.warnings))
         result(matchedWarnings, expectable)
-      case CompileFailure(source, errors, notices) =>
-        MatchFailure("", compileError(source, notices ++ errors), expectable)
+      case c: CompileFailure => MatchFailure("", compileError(c), expectable)
     }
   }
 
@@ -73,17 +71,17 @@ class SuccessCompileMatcher(val hasValidWarnings: Matcher[Seq[Warning]] = CheckM
   def containing(snippets: ExpectedCode*) = this and (new ContainsMatcher(snippets))
 }
 
-class FailureCompileMatcher(val hasValidErrors: Matcher[Seq[Error]] = CheckMatchers.nonEmpty, val hasValidWarnings: Matcher[Seq[Warning]]) extends CompileMatcher[FailureCompileMatcher] {
+class FailureCompileMatcher(val hasValidErrors: Matcher[Seq[Error]] = CheckMatchers.nonEmpty, val hasValidWarnings: Matcher[Seq[Warning]] = CheckMatchers.nonEmpty) extends CompileMatcher[FailureCompileMatcher] {
 
   def copy(hasValidWarnings: Matcher[Seq[Warning]]) = new FailureCompileMatcher(hasValidErrors, hasValidWarnings)
 
   def apply[S <: CompileResult](expectable: Expectable[S]): MatchResult[S] = {
     expectable.value match {
-      case CompileSuccess(_, _, _) =>
-        MatchFailure("", "Code compiles", expectable)
-      case c@CompileFailure(source, errors, notices) =>
+      case c: CompileSuccess =>
+        MatchFailure("", compileError(c), expectable)
+      case c: CompileFailure =>
         val matchedWarnings = hasValidWarnings(createExpectable(c.warnings))
-        val matchedErrors = hasValidErrors(createExpectable(errors))
+        val matchedErrors = hasValidErrors(createExpectable(c.errors))
         result(MatchResult.sequence(Seq(matchedWarnings, matchedErrors)), expectable)
     }
   }
