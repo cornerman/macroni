@@ -1,6 +1,5 @@
 package macroni.compiler
 
-import scala.tools.reflect.FrontEnd
 import scala.reflect.runtime.universe.{Tree, NoPosition}
 
 sealed trait CompileResult {
@@ -12,20 +11,20 @@ sealed trait CompileResult {
 }
 
 object CompileResult {
-  def reportedMessages(reporter: FrontEnd) = {
-    val messages = reporter.infos.map(Message(reporter)).toSeq
+  def reportedMessages(reporter: Reporter) = {
+    val messages = reporter.infoList.map(Message(reporter)).toSeq
     val notices = messages collect { case e: Notice => e }
     val errors = messages collect { case e: Error => e }
     (notices, errors)
   }
 
-  def apply(source: Tree, generated: Tree, reporter: FrontEnd): CompileResult = {
+  def apply(source: Tree, generated: Tree, reporter: Reporter): CompileResult = {
     val (notices, errors) = reportedMessages(reporter)
     if (errors.isEmpty) CompileSuccess(source, generated, notices)
     else CompileFailure(source, errors, notices)
   }
 
-  def apply(source: Tree, e: Throwable, reporter: FrontEnd): CompileResult = {
+  def apply(source: Tree, e: Throwable, reporter: Reporter): CompileResult = {
     val (notices, errors) = reportedMessages(reporter)
     val thrownError = Error(NoPosition, e.getMessage)
     CompileFailure(source, errors :+ thrownError, notices)

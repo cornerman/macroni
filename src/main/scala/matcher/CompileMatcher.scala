@@ -1,30 +1,12 @@
 package macroni.matcher
 
 import macroni.compiler._
-import macroni.macros.NamedMatcherMacro
-import macroni.helpers.MatchDescription._
+import macroni.helper.FailDescription
 
 import org.specs2.matcher._
 import scala.reflect.runtime.universe.Tree
 
-object CheckMatchers {
-  //TODO: set messages
-  def alwaysOk[T]: Matcher[T] = new AlwaysMatcher[T]
-  def isEmpty[T]: Matcher[Seq[T]] = AnyMatchers.beEmpty
-  def once[T]: Matcher[Seq[T]] = TraversableMatchers.haveSize(1)
-  def nonEmpty[T]: Matcher[Seq[T]] = isEmpty.not
-}
-
-class MessageMatcher[M <: Message](matcher: Matcher[String]) extends Matcher[M] {
-  override def apply[S <: M](expectable: Expectable[S]): MatchResult[S] = {
-    val matchResult = matcher(createExpectable(expectable.value.msg))
-    result(matchResult, expectable)
-  }
-
-  override def toString = matcher.toString
-}
-
-class CompileTreeMatcher(matcher: Matcher[CompileResult]) extends Matcher[Tree] {
+class CompilingTreeMatcher(matcher: Matcher[CompileResult]) extends Matcher[Tree] {
   override def apply[S <: Tree](expectable: Expectable[S]): MatchResult[S] = {
     val compiled = Compiler(expectable.value)
     val matchResult = matcher(createExpectable(compiled))
@@ -33,56 +15,51 @@ class CompileTreeMatcher(matcher: Matcher[CompileResult]) extends Matcher[Tree] 
 }
 
 trait CompileMatcher[M <: CompileMatcher[M]] extends Matcher[CompileResult] {
-  val hasValidWarnings: Matcher[Seq[Warning]]
-  def copy(hasValidWarnings: Matcher[Seq[Warning]]): M
+  val warningMatcher: Matcher[Seq[Warning]]
+  def matchWarnings(warningMatcher: Matcher[Seq[Warning]]): M
+  def matchErrors(errorMatcher: Matcher[Seq[Error]]) = new FailureCompileMatcher(errorMatcher, warningMatcher)
 
-  def canWarn = copy(CheckMatchers.alwaysOk)
-  def withWarning = copy(CheckMatchers.once)
-  def withWarnings = copy(CheckMatchers.nonEmpty)
-  def matchWarning(matcher: Matcher[String]) = matchWarnings(matcher)
-  def matchWarnings(matchers: Matcher[String]*) = copy(new SeqMatcherOfMatchers(matchers.map(m => new MessageMatcher[Warning](m))))
+  def canWarn = matchWarnings(CheckMatchers.alwaysOk)
+  def withWarning = matchWarnings(CheckMatchers.once)
+  def withWarnings = matchWarnings(CheckMatchers.nonEmpty)
+  def withWarning(matcher: Matcher[String]) = withWarnings(matcher)
+  def withWarnings(matchers: Matcher[String]*) = matchWarnings(MessageMatcher.warnings(matchers))
 
-  def withWarning(matcher: Matcher[String]): SuccessCompileMatcher = macro NamedMatcherMacro.compileWithWarning
-  def withWarnings(matchers: Matcher[String]*): SuccessCompileMatcher = macro NamedMatcherMacro.compileWithWarnings
-
-  def withError = new FailureCompileMatcher(CheckMatchers.once, hasValidWarnings)
-  def withErrors = new FailureCompileMatcher(CheckMatchers.nonEmpty, hasValidWarnings)
-  def matchError(matcher: Matcher[String]) = matchErrors(matcher)
-  def matchErrors(matchers: Matcher[String]*) = new FailureCompileMatcher(new SeqMatcherOfMatchers(matchers.map(m => new MessageMatcher[Error](m))), hasValidWarnings)
-
-  def withError(matcher: Matcher[String]): FailureCompileMatcher = macro NamedMatcherMacro.compileWithError
-  def withErrors(matchers: Matcher[String]*): FailureCompileMatcher = macro NamedMatcherMacro.compileWithErrors
+  def withError = matchErrors(CheckMatchers.once)
+  def withErrors = matchErrors(CheckMatchers.nonEmpty)
+  def withError(matcher: Matcher[String]) = withErrors(matcher)
+  def withErrors(matchers: Matcher[String]*) = matchErrors(MessageMatcher.errors(matchers))
 }
 
-class SuccessCompileMatcher(val hasValidWarnings: Matcher[Seq[Warning]] = CheckMatchers.isEmpty) extends CompileMatcher[SuccessCompileMatcher] {
+class SuccessCompileMatcher(val warningMatcher: Matcher[Seq[Warning]] = CheckMatchers.isEmpty) extends CompileMatcher[SuccessCompileMatcher] {
 
-  def copy(hasValidWarnings: Matcher[Seq[Warning]]) = new SuccessCompileMatcher(hasValidWarnings)
+  def matchWarnings(warningMatcher: Matcher[Seq[Warning]]) = new SuccessCompileMatcher(warningMatcher)
 
   def apply[S <: CompileResult](expectable: Expectable[S]): MatchResult[S] = {
     expectable.value match {
       case c: CompileSuccess =>
-        val matchedWarnings = hasValidWarnings(createExpectable(c.warnings))
-        result(matchedWarnings, expectable)
-      case c: CompileFailure => MatchFailure("", compileError(c), expectable)
+        val matchedWarnings = warningMatcher(createExpectable(c.warnings))
+        val res = result(matchedWarnings, expectable)
+        res.updateMessage(FailDescription.prependSource(c.source))
+      case c: CompileFailure => failure(FailDescription.shouldCompile(c), expectable)
     }
   }
 
-  def to(tree: Tree) = this and (new EqualsMatcher(tree))
-  def containing(snippets: ExpectedCode*) = this and (new ContainsMatcher(snippets))
+  def to(matchers: Matcher[Tree]*) = this and new CompiledTreeMatcher(matchers.fold(new AlwaysMatcher)((a,b) => a and b))
 }
 
-class FailureCompileMatcher(val hasValidErrors: Matcher[Seq[Error]] = CheckMatchers.nonEmpty, val hasValidWarnings: Matcher[Seq[Warning]] = CheckMatchers.nonEmpty) extends CompileMatcher[FailureCompileMatcher] {
+class FailureCompileMatcher(val errorMatcher: Matcher[Seq[Error]] = CheckMatchers.nonEmpty, val warningMatcher: Matcher[Seq[Warning]] = CheckMatchers.nonEmpty) extends CompileMatcher[FailureCompileMatcher] {
 
-  def copy(hasValidWarnings: Matcher[Seq[Warning]]) = new FailureCompileMatcher(hasValidErrors, hasValidWarnings)
+  def matchWarnings(warningMatcher: Matcher[Seq[Warning]]) = new FailureCompileMatcher(errorMatcher, warningMatcher)
 
   def apply[S <: CompileResult](expectable: Expectable[S]): MatchResult[S] = {
     expectable.value match {
-      case c: CompileSuccess =>
-        MatchFailure("", compileError(c), expectable)
+      case c: CompileSuccess => failure(FailDescription.shouldNotCompile(c), expectable)
       case c: CompileFailure =>
-        val matchedWarnings = hasValidWarnings(createExpectable(c.warnings))
-        val matchedErrors = hasValidErrors(createExpectable(c.errors))
-        result(MatchResult.sequence(Seq(matchedWarnings, matchedErrors)), expectable)
+        val matchedWarnings = warningMatcher(createExpectable(c.warnings))
+        val matchedErrors = errorMatcher(createExpectable(c.errors))
+        val res = result(MatchResult.sequence(Seq(matchedWarnings, matchedErrors)), expectable)
+        res.updateMessage(FailDescription.prependSource(c.source))
     }
   }
 }

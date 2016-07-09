@@ -1,19 +1,37 @@
 package macroni.compiler
 
-import scala.tools.reflect.FrontEnd
-import scala.reflect.runtime.universe.Tree
+import scala.reflect.internal.util.Position
 import scala.reflect.runtime.currentMirror
-import scala.tools.reflect.ToolBox
+import scala.reflect.runtime.universe.Tree
+import scala.tools.reflect.{FrontEnd, ToolBox}
 import scala.util.{Try, Success, Failure}
 
 class Reporter extends FrontEnd {
-  override def display(info: Info) {}
-  override def interactive() {}
+  //TODO: needed because FrontEnd stores `infos` in a LinkedHashSet.
+  // Thus, messages with the same hashcode are lost. This can happen
+  // in quasiquotes, where the position may be NoPosition.
+  val infoList = new scala.collection.mutable.ArrayBuffer[Info]
+
+  override def log(pos: Position, msg: String, severity: Severity) {
+    super.log(pos, msg, severity)
+    infoList += Info(pos, msg, severity)
+  }
+
+  override def reset() {
+    super.reset()
+    infoList.clear()
+  }
+
+  def display(info: Info) {}
+  def interactive() {}
 }
 
 object Config {
-  val paradiseJar = System.getProperty("user.home") + "/.ivy2/cache/org.scalamacros/paradise_2.11.8/jars/paradise_2.11.8-2.1.0.jar"
-  val options = s"-Xplugin-require:macroparadise -Xplugin:$paradiseJar"
+  private val paradisePath = System.getProperty("user.home") + "/.ivy2/cache/org.scalamacros/paradise_2.11.8/jars/paradise_2.11.8-2.1.0.jar"
+  private val paradiseJar = if (new java.io.File(paradisePath).exists) Some(paradisePath) else None
+  private val paradiseOptions = paradiseJar.map(path => s"-Xplugin-require:macroparadise -Xplugin:$path").getOrElse("")
+
+  val options = paradiseOptions
 }
 
 object Compiler {
