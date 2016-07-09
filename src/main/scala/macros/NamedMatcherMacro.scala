@@ -5,9 +5,10 @@ import reflect.macros.blackbox.Context
 case class NamedValue[T](name: String, value: T)
 
 object NamedMatcherMacro {
-  def call(func: String)(c: Context)(args: Seq[c.Tree]): c.Tree = {
+  private def call(func: String)(c: Context)(args: Seq[c.Tree]): c.Tree = {
     val tools = ContextTools(c)
     import c.universe._, tools._
+
     val values = args.map(treeToNamedValue).toList
     q"new macroni.matcher.SuccessCompileMatcher().${TermName(func)}(${values}.map(nv => new macroni.matcher.NamedMatcher(nv.name, nv.value)): _*)"
   }

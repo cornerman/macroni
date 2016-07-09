@@ -11,19 +11,14 @@ class ContextTools[C <: Context](val context: C) {
     q"macroni.macros.NamedValue($name, $value)"
   }
 
-  def termToNamedValue(term: context.TermName): context.Tree = {
-    val name = term.decodedName.toString
-    namedValue(name, q"$term")
+  def matcherNameFromTree(tree: context.Tree): String = tree match {
+    case v@q"$_.this.StringToMatcher($actual)" => matcherNameFromTree(actual)
+    case v@q"{..$prefix}.$func($actual)" => s"$func(${matcherNameFromTree(actual)})"
+    case v => v.toString
   }
 
-  def treeToNamedValue(tree: context.Tree): context.Tree = {
-    tree match {
-      case v@q"CodeSpec.this.StringToMatcher($actual)" => namedValue(actual.toString, v)
-      case v@Select(_, term: TermName) => termToNamedValue(term)
-      case v@Ident(term: TermName) => termToNamedValue(term)
-      case v => namedValue(v.toString, v)
-    }
-  }
+  def termToNamedValue(term: context.TermName): context.Tree = namedValue(term.toString, q"$term")
+  def treeToNamedValue(tree: context.Tree): context.Tree = namedValue(matcherNameFromTree(tree), tree)
 }
 
 object ContextTools {
