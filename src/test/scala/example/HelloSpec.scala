@@ -1,10 +1,27 @@
 package example
 
-import macroni.CompileSpec
-import macroni.compiler._
-import scala.reflect.runtime.universe._
+import macroni.{CompileSpec, TreeSpec, ContextMock}
+
+class HelloTranslatorSpec extends TreeSpec with ContextMock {
+  import whiteboxContext.universe._
+
+  val translator = HelloTranslator(whiteboxContext)
+
+  "simple hello compiles to" >> {
+    translator.translate(q"""object A""") must beEqualTo(
+      q"""object A { def hello: String = "hello" }"""
+    ).orPending
+  }
+}
 
 class HelloSpec extends CompileSpec {
+  import scala.reflect.runtime.universe._
+
+  "simple hello compiles" >> {
+    q"@example.hello object A" must compile
+    q"@example.hello object A" must not(abort)
+    q"@example.hello object A" must compile.canWarn
+  }
 
   "simple hello compiles to" >> {
     q"""@example.hello object A""" must compile.to(
@@ -14,16 +31,9 @@ class HelloSpec extends CompileSpec {
 
   "simple hello compiles containing" >> {
     q"""@example.hello object A""" must compile.to(
-      q"""def hellol: String""" or not(q"""Int""")
-      // not(contain(q"""String"""))
+      contain(q"""String""") or not(contain(q"""Int""")),
+      haveChild(haveChild(q"""def hello: String = "hello""""))
     )
-  }
-
-  "simple hello compiles" >> {
-    q"object A" must macroni.matcher.TreeMatchers.beEqualTo(q"object A")
-    q"@example.hello object A" must compile
-    q"@example.hello object A" must not(abort)
-    q"@example.hello object A" must compile.canWarn
   }
 
   "duplicate hello doesn't compile" >> {
@@ -32,34 +42,29 @@ class HelloSpec extends CompileSpec {
     q"@example.hello object A { val hello = 1 }" must compile.withError
     q"@example.hello object A { val hello = 1 }" must abort(startWith("reflective typecheck has failed: method hello is defined twice"))
     q"@example.hello object A { val hello = 1 }" must compile.withError(startWith("reflective typecheck has failed: method hello is defined twice"))
-
-    q"@example.hello object A { val hello = 1 }" must compile.withErrors(startWith("reflective typecheck has failed: method hello is defined twice"), startWith("<") and endWith(">"), "asd")
   }
 
   "detect warning" >> {
     q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must warn
     q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.canWarn
     q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarning
-    println(Compiler(q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }").asInstanceOf[CompileSuccess].generated.collect { case a => a })
-    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarning(contain("erasure")).to(contain(q"""def hello: String = "hello""""))
-    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must warn("abstract type T is unchecked since it is eliminated by erasures")
+    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must warn(contain("erasure")).to(contain(q""""hello""""))
+    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarning(contain("erasure")).to(contain(q""""hello""""))
   }
 
-  "detect warning" >> {
-    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must warn
-    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.canWarn
-    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarning
-    println(Compiler(q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }").asInstanceOf[CompileSuccess].generated.children)
-    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarning(contain("erasure")).to(haveChild(q"foobar"))
-    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must warn("abstract type T is unchecked since it is eliminated by erasures")
+  "detect multiple warnings" >> {
+    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T]; def baz[T](l: T) = 1.isInstanceOf[T] }" must warn
+    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T]; def baz[T](l: T) = 1.isInstanceOf[T] }" must compile.canWarn
+    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T]; def baz[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarnings
+    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T]; def baz[T](l: T) = 1.isInstanceOf[T] }" must warn(contain("erasure"), contain("erasure"))
+    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T]; def baz[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarnings(contain("erasure"), contain("erasure"))
   }
 
   "detect error" >> {
     q"@example.hello object A { val foo: String = 2 }" must abort
     q"@example.hello object A { val foo: String = 2 }" must compile.withError
     q"@example.hello object A { val foo: String = 2 }" must abort(contain("type mismatch"))
-
-    q"@example.hello object A { val foo: String = 2 }" must abort()
+    q"@example.hello object A { val foo: String = 2 }" must compile.withError(contain("type mismatch"))
   }
 
   "detect abort in macro" >> {

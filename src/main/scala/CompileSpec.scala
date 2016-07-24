@@ -5,13 +5,15 @@ import macroni.matcher._
 
 import scala.reflect.runtime.universe.Tree
 import org.specs2.mutable.Specification
-import org.specs2.matcher.{AnyMatchers, Matcher}
+import org.specs2.matcher.Matcher
 
-trait CompileSpec extends Specification with TreeMatchers {
+trait TreeSpec extends Specification with TreeMatchers {
+  implicit def TreeToMatcher(tree: Tree): Matcher[Tree] = beEqualTo(tree)
+}
+
+trait CompileSpec extends TreeSpec {
   implicit def MatcherToCompilingTreeMatcher(matcher: Matcher[CompileResult]): Matcher[Tree] = new CompilingTreeMatcher(matcher)
-  implicit def MatcherToCompiledTreeMatcher(matcher: Matcher[Tree]): Matcher[CompileResult] = new CompiledTreeMatcher(matcher)
-  implicit def StringToMatcher(msg: String): Matcher[String] = AnyMatchers.beEqualTo(msg)
-  implicit def TreeToMatcher(tree: Tree): Matcher[Tree] = TreeMatchers.beEqualTo(tree)
+  implicit def StringToMatcher(msg: String): Matcher[String] = beEqualTo(msg)
 
   def compile = new SuccessCompileMatcher()
   def canWarn = compile.canWarn

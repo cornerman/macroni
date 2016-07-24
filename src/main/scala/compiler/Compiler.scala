@@ -6,10 +6,10 @@ import scala.reflect.runtime.universe.Tree
 import scala.tools.reflect.{FrontEnd, ToolBox}
 import scala.util.{Try, Success, Failure}
 
-class Reporter extends FrontEnd {
-  //TODO: needed because FrontEnd stores `infos` in a LinkedHashSet.
-  // Thus, messages with the same hashcode are lost. This can happen
-  // in quasiquotes, where the position may be NoPosition.
+//TODO: needed because FrontEnd stores `infos` in a LinkedHashSet.
+// Thus, messages with the same hashcode are lost. This can happen
+// in quasiquotes, where the position may be NoPosition.
+trait InfoListFrontEnd extends FrontEnd {
   val infoList = new scala.collection.mutable.ArrayBuffer[Info]
 
   override def log(pos: Position, msg: String, severity: Severity) {
@@ -21,7 +21,9 @@ class Reporter extends FrontEnd {
     super.reset()
     infoList.clear()
   }
+}
 
+class Reporter extends InfoListFrontEnd {
   def display(info: Info) {}
   def interactive() {}
 }
@@ -40,7 +42,7 @@ object Compiler {
     val toolbox = currentMirror.mkToolBox(reporter, Config.options)
 
     Try(toolbox.typecheck(tree)) match {
-      case Success(typedTree) => CompileResult(tree, typedTree, reporter)
+      case Success(typedTree) => CompileResult(tree, toolbox.untypecheck(typedTree), reporter)
       case Failure(e) => CompileResult(tree, e, reporter)
     }
   }

@@ -20,11 +20,6 @@ object FailDescription {
     descriptions.mkString(EOL) + EOL + bold(red("---")) + EOL
   }
 
-  def prependSource(source: Tree)(description: String) = {
-    val sourceDesc = describeSection("source" -> highlightCode(source))
-    sourceDesc + EOL + description
-  }
-
   def shouldCompile(result: CompileFailure) = {
     import result._
     describeFailure("source" -> highlightCode(source), "which doesn't compile but should" -> (notices ++ errors).mkString(EOL))
@@ -36,34 +31,18 @@ object FailDescription {
   }
 
   def shouldContain(source: Tree, message: String) = {
-    describeFailure("source" -> highlightCode(source), "which does not contain" -> message)
+    describeFailure("source" -> highlightCode(source), "which does not contain" -> highlight(message))
   }
 
   def shouldHaveChild(source: Tree, message: String) = {
-    describeFailure("source" -> highlightCode(source), "which does not have a direct child" -> message)
+    describeFailure("source" -> highlightCode(source), "which does not have a direct child" -> highlight(message))
   }
 
-  def mismatchCompilerWarning(message: String) = {
-    describeFailure("compiles with unexpected warnings" -> message)
+  def compilerWarnings(source: Tree, description: String) = {
+    describeFailure("source" -> highlightCode(source), "which has unexpected warnings" -> description)
   }
 
-  def mismatchCompilerError(message: String) = {
-    describeFailure("has unexpected errors" -> message)
-  }
-
-  def missingCompilerWarnings(messages: Seq[String]) = {
-    describeFailure("compiles with less warnings than expected, missing" -> messages.mkString(EOL))
-  }
-
-  def tooManyCompilerWarnings(messages: Seq[Warning]) = {
-    describeFailure("compiles with more warnings than expected" -> messages.mkString(EOL))
-  }
-
-  def missingCompilerErrors(messages: Seq[String]) = {
-    describeFailure("has less errors than expected, missing" -> messages.mkString(EOL))
-  }
-
-  def tooManyCompilerErrors(messages: Seq[Error]) = {
-    describeFailure("has more errors than expected" -> messages.mkString(EOL))
+  def compilerErrors(source: Tree, description: String) = {
+    describeFailure("source" -> highlightCode(source), "which has unexpected errors" -> description)
   }
 }

@@ -32,9 +32,11 @@ trait TreeChildMatcher extends Matcher[Tree] {
   val describeFail: (Tree, String) => String
 
   override def apply[S <: Tree](expectable: Expectable[S]): MatchResult[S] = {
-    val matches = children(expectable.value).map(t => matcher(createExpectable(t)))
-    val success = matches.find(_.isSuccess).map(result(_, expectable))
-    success.getOrElse(failure(describeFail(expectable.value, matcher(createExpectable(q"")).message), expectable))
+    val check = ValueChecks.matcherIsValueCheck(matcher)
+    val seqMatcher = TraversableMatchers.contain(check)
+    val seqExpectable = createExpectable(children(expectable.value))
+    val matched = seqMatcher(seqExpectable)
+    result(matched, expectable).updateMessage(describeFail(expectable.value, _))
   }
 }
 
@@ -49,13 +51,9 @@ class TreeContainsMatcher(val matcher: Matcher[Tree]) extends TreeChildMatcher {
 }
 
 trait TreeMatchers {
-  private def treeHasChild(matchers: Seq[Matcher[Tree]], wrap: Matcher[Tree] => Matcher[Tree]): Matcher[Tree] = {
-    matchers.map(wrap).fold(new AlwaysMatcher[Tree])((a,b) => a and b)
-  }
-
   def beEqualTo(tree: Tree) = new TreeStringMatcher(new BeEqualTo(showCode(tree)))
-  def haveChild(matchers: Matcher[Tree]*) = treeHasChild(matchers, m => new TreeHasChildMatcher(m))
-  def contain(matchers: Matcher[Tree]*) = treeHasChild(matchers, m => new TreeContainsMatcher(m))
+  def haveChild(matchers: Matcher[Tree]*) = matchers.map(m => new TreeHasChildMatcher(m)).fold(new AlwaysMatcher[Tree])((a,b) => a and b)
+  def contain(matchers: Matcher[Tree]*) = matchers.map(m => new TreeContainsMatcher(m)).fold(new AlwaysMatcher[Tree])((a,b) => a and b)
 }
 
 object TreeMatchers extends TreeMatchers

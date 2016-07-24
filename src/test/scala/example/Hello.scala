@@ -4,7 +4,7 @@ import scala.reflect.macros.whitebox.Context
 import scala.language.experimental.macros
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 
-class ContextHelper[C <: Context](val context: C) {
+class HelloTranslator[C <: Context](val context: C) {
   import context.universe._
 
   case class ObjectPattern(name: TermName, parents: List[Tree], body: List[Tree])
@@ -33,22 +33,22 @@ class ContextHelper[C <: Context](val context: C) {
   }
 }
 
-object ContextHelper {
-  def apply(c: Context): ContextHelper[c.type] = new ContextHelper(c)
+object HelloTranslator {
+  def apply(c: Context): HelloTranslator[c.type] = new HelloTranslator(c)
 }
 
-object helloMacro {
+object HelloMacro {
   def impl(c: Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
 
-    val h = ContextHelper(c)
+    val translator = HelloTranslator(c)
     val trees = annottees.map(_.tree).toList
-    val translated = h.translate(trees.head) :: trees.tail
+    val translated = translator.translate(trees.head) :: trees.tail
     c.Expr[Any](q"..$translated")
   }
 }
 
 @compileTimeOnly("only for compile time expansion")
 class hello extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro helloMacro.impl
+  def macroTransform(annottees: Any*): Any = macro HelloMacro.impl
 }
