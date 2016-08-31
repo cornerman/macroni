@@ -1,7 +1,6 @@
 import macroni.CompileSpec
 import macroni.compiler._
-import macroni.matcher._
-import macroni.helper._
+import macroni.helper.{Colors, FailDescription}
 
 import scala.reflect.runtime.universe._
 import scala.reflect.ClassTag

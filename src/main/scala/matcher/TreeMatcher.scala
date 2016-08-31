@@ -59,7 +59,7 @@ trait TreeMatchers {
     matchers.map { matcher =>
       val check = ValueChecks.matcherIsValueCheck(matcher)
       construct(TraversableMatchers.contain(check))
-    }.fold(new AlwaysMatcher[Tree])((a,b) => a and b)
+    }.fold(new AlwaysMatcher)(_ and _)
   }
 
   def haveTree(tree: Tree) = new TreeStringMatcher(new BeEqualTo(showCode(tree)))

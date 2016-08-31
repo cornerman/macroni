@@ -11,7 +11,7 @@ sealed trait CompileResult {
 }
 
 object CompileResult {
-  def reportedMessages(frontEnd: InfoListFrontEnd) = {
+  private def reportedMessages(frontEnd: InfoListFrontEnd) = {
     val messages = frontEnd.infoList.map(Message(frontEnd)).toSeq
     val notices = messages collect { case e: Notice => e }
     val errors = messages collect { case e: Error => e }

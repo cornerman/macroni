@@ -8,14 +8,14 @@ import scala.reflect.runtime.universe.{showCode, Tree}
 object FailDescription {
   import Colors._
 
-  def highlightCode(tree: Tree) = highlight(showCode(tree))
+  private def highlightCode(tree: Tree) = highlight(showCode(tree))
 
-  def describeSection(section: (String, String)) = {
+  private def describeSection(section: (String, String)) = {
     val (head, body) = section
     bold(red(s"--- $head: ---")) + EOL + body
   }
 
-  def describeFailure(sections: (String, String)*) = {
+  private def describeFailure(sections: (String, String)*) = {
     val descriptions = sections.map(describeSection)
     descriptions.mkString(EOL) + EOL + bold(red("---")) + EOL
   }

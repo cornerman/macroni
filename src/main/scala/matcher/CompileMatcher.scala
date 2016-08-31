@@ -44,7 +44,7 @@ class SuccessCompileMatcher(val warningMatcher: Matcher[Seq[Warning]] = MessageM
     }
   }
 
-  def to(matchers: Matcher[Tree]*) = this and new CompiledTreeMatcher(matchers.fold(new AlwaysMatcher)((a,b) => a and b))
+  def to(matchers: Matcher[Tree]*) = this and new CompiledTreeMatcher(matchers.fold(new AlwaysMatcher)(_ and _))
 }
 
 class FailureCompileMatcher(val errorMatcher: Matcher[Seq[Error]] = MessageMatcher.nonEmpty, val warningMatcher: Matcher[Seq[Warning]] = MessageMatcher.isEmpty) extends CompileMatcher[FailureCompileMatcher] {
@@ -62,3 +62,14 @@ class FailureCompileMatcher(val errorMatcher: Matcher[Seq[Error]] = MessageMatch
     }
   }
 }
+
+trait CompileMatchers {
+  def compile = new SuccessCompileMatcher()
+  def canWarn = compile.canWarn
+  def warn = compile.withWarnings
+  def warn(matchers: Matcher[String]*) = compile.withWarnings(matchers: _*)
+  def abort = compile.withErrors
+  def abort(matchers: Matcher[String]*) = compile.withErrors(matchers: _*)
+}
+
+object CompileMatchers extends CompileMatchers

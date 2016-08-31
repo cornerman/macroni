@@ -1,20 +1,12 @@
 package macroni
 
-import macroni.compiler.CompileResult
-import macroni.matcher._
-
 import scala.reflect.runtime.universe.Tree
-import org.specs2.mutable.Specification
-import org.specs2.matcher.Matcher
+import org.specs2.matcher.{BeEqualTo, Matcher}
 
-trait CompileSpec extends TreeSpec {
+import macroni.compiler.CompileResult
+import macroni.matcher.{CompilingTreeMatcher, CompileMatchers}
+
+trait CompileSpec extends TreeSpec with CompileMatchers {
   implicit def MatcherToCompilingTreeMatcher(matcher: Matcher[CompileResult]): Matcher[Tree] = new CompilingTreeMatcher(matcher)
-  implicit def StringToMatcher(msg: String): Matcher[String] = beEqualTo(msg)
-
-  def compile = new SuccessCompileMatcher()
-  def canWarn = compile.canWarn
-  def warn = compile.withWarnings
-  def warn(matchers: Matcher[String]*) = compile.withWarnings(matchers: _*)
-  def abort = compile.withErrors
-  def abort(matchers: Matcher[String]*) = compile.withErrors(matchers: _*)
+  implicit def StringToMatcher(msg: String): Matcher[String] = new BeEqualTo(msg)
 }
