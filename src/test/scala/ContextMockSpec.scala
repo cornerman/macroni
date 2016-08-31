@@ -8,7 +8,7 @@ class BlackboxContextMockSpec extends TreeSpec with blackbox.ContextMock {
     import context.universe._
 
     val tree = q"val golum = true"
-    tree should haveTree(q"val golum = true")
+    tree should beEqualToTree(q"val golum = true")
   }
 }
 
@@ -17,6 +17,6 @@ class WhiteboxContextMockSpec extends TreeSpec with whitebox.ContextMock {
     import context.universe._
 
     val tree = q"val golum = true"
-    tree should haveTree(q"val golum = true")
+    tree should beEqualToTree(q"val golum = true")
   }
 }

@@ -62,11 +62,11 @@ trait TreeMatchers {
     }.fold(new AlwaysMatcher)(_ and _)
   }
 
-  def haveTree(tree: Tree) = new TreeStringMatcher(new BeEqualTo(showCode(tree)))
-  def haveChild(matchers: Matcher[Tree]*) = newTreeChildMatcher(matchers, m => new TreeChildrenMatcher(m))
-  def haveDescendant(matchers: Matcher[Tree]*) = newTreeChildMatcher(matchers, m => new TreeDescendantsMatcher(m))
-  def haveChild(matcher: Matcher[Seq[Tree]]) = new TreeChildrenMatcher(matcher)
-  def haveDescendant(matcher: Matcher[Seq[Tree]]) = new TreeDescendantsMatcher(matcher)
+  def beEqualToTree(tree: Tree) = new TreeStringMatcher(new BeEqualTo(showCode(tree)))
+  def haveChildTree(matchers: Matcher[Tree]*) = newTreeChildMatcher(matchers, m => new TreeChildrenMatcher(m))
+  def containTree(matchers: Matcher[Tree]*) = newTreeChildMatcher(matchers, m => new TreeDescendantsMatcher(m))
+  def haveChildTree(matcher: Matcher[Seq[Tree]]) = new TreeChildrenMatcher(matcher)
+  def containTree(matcher: Matcher[Seq[Tree]]) = new TreeDescendantsMatcher(matcher)
 }
 
 object TreeMatchers extends TreeMatchers

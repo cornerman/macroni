@@ -7,25 +7,25 @@ class TreeMatcherSpec extends TreeSpec {
 
   "tree equals itself" >> {
     val tree = q"object A { def pi = 1 }"
-    tree should haveTree(tree)
+    tree must beEqualToTree(tree)
   }
 
   "tree equals same tree" >> {
     val treeA = q"object A { def pi = 1 }"
     val treeB = q"object A { def pi = 1 }"
-    treeA should haveTree(treeB)
+    treeA should beEqualToTree(treeB)
   }
 
   "tree does not equal something else" >> {
     val treeA = q"object A { def pi = 1 }"
     val treeB = q"object A { def pi = 2 }"
-    treeA should not(haveTree(treeB))
+    treeA should not(beEqualToTree(treeB))
   }
 
   "tree contains its subtree" >> {
     val tree = q"object A { def pi = 1 }; 2"
 
-    tree should haveDescendant(
+    tree should containTree(
       q"def pi = 1",
       q"1",
       q"2"
@@ -35,7 +35,7 @@ class TreeMatcherSpec extends TreeSpec {
   "tree in string is not contained" >> {
     val tree = q""""object A { def pi = 1 }""""
 
-    tree should not(haveDescendant(
+    tree should not(containTree(
       q"def pi = 1"
     ))
   }
@@ -43,7 +43,7 @@ class TreeMatcherSpec extends TreeSpec {
   "tree does not contain other subtrees" >> {
     val tree = q"object A { def pi = 1 }"
 
-    tree should not(haveDescendant(
+    tree should not(containTree(
       q"def pi = 1",
       q"bier",
       q"2"
@@ -53,7 +53,7 @@ class TreeMatcherSpec extends TreeSpec {
   "tree has its direct children" >> {
     val tree = q"def pi = 1; def es = 2"
 
-    tree should haveChild(
+    tree should haveChildTree(
       q"def pi = 1",
       q"def es = 2"
     )
@@ -62,18 +62,18 @@ class TreeMatcherSpec extends TreeSpec {
   "tree has exactly its direct children" >> {
     val tree = q"def pi = 1; def es = 2; List(pi, es)"
 
-    //TODO: without explicit TreeMatchers.haveTree
-    tree should haveChild(exactly(
-      haveTree(q"def pi = 1"),
-      haveTree(q"def es = 2"),
-      haveTree(q"List(pi, es)")
+    //TODO: without explicit TreeMatchers.beEqualToTree
+    tree should haveChildTree(exactly(
+      beEqualToTree(q"def pi = 1"),
+      beEqualToTree(q"def es = 2"),
+      beEqualToTree(q"List(pi, es)")
     ))
   }
 
   "tree does not have other direct children" >> {
     val tree = q"def pi = 1; def es = 2"
 
-    tree should not(haveChild(
+    tree should not(haveChildTree(
       q"def pi = 1",
       q"2"
     ))

@@ -8,5 +8,5 @@ import macroni.matcher.{TreeStringMatcher, TreeMatchers}
 
 trait TreeSpec extends Specification with TreeMatchers {
   implicit def StringToTreeMatcher(matcher: Matcher[String]): Matcher[Tree] = new TreeStringMatcher(matcher)
-  implicit def TreeToMatcher(tree: Tree): Matcher[Tree] = haveTree(tree)
+  implicit def TreeToMatcher(tree: Tree): Matcher[Tree] = beEqualToTree(tree)
 }

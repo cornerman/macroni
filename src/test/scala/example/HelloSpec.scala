@@ -9,7 +9,7 @@ class HelloTranslatorSpec extends TreeSpec with ContextMock {
   val translator = HelloTranslator(context)
 
   "simple hello compiles to" >> {
-    translator.translate(q"""object A""") must haveTree(
+    translator.translate(q"""object A""") must beEqualToTree(
       q"""object A { def hello: String = "hello" }"""
     )
   }
@@ -32,8 +32,8 @@ class HelloSpec extends CompileSpec {
 
   "simple hello compiles containing" >> {
     q"""@example.hello object A""" must compile.to(
-      haveDescendant(q"""String""") or not(haveDescendant(q"""Int""")),
-      haveChild(haveChild(q"""def hello: String = "hello""""))
+      containTree(q"""String""") or not(containTree(q"""Int""")),
+      haveChildTree(haveChildTree(q"""def hello: String = "hello""""))
     )
   }
 
@@ -49,8 +49,8 @@ class HelloSpec extends CompileSpec {
     q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must warn
     q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.canWarn
     q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarning
-    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must warn(contain("erasure")).to(haveDescendant(q""""hello""""))
-    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarning(contain("erasure")).to(haveDescendant(q""""hello""""))
+    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must warn(contain("erasure")).to(containTree(q""""hello""""))
+    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarning(contain("erasure")).to(containTree(q""""hello""""))
   }
 
   "detect multiple warnings" >> {
