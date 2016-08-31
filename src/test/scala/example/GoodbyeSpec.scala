@@ -1,21 +1,22 @@
 package example
 
-import macroni.{CompileSpec, TreeSpec, ContextMock}
+import macroni.{CompileSpec, TreeSpec}
+import macroni.blackbox.ContextMock
 
 class GoodbyeTranslatorSpec extends TreeSpec with ContextMock {
-  import blackboxContext.universe._
+  import context.universe._
 
-  val translator = GoodbyeTranslator(blackboxContext)
+  val translator = GoodbyeTranslator(context)
 
   "simple hello compiles to" >> {
-    translator.translate(q"""println("bye")""") must beEqualTo(
+    translator.translate(q"""println("bye")""") must haveTree(
       q"""new example.Goodbye {
         def make() {
-          scala.Predef.println("bye")
-          java.lang.System.exit(0)
+          println("bye")
+          System.exit(0)
         }
       }"""
-    ).orPending
+    )
   }
 }
 
@@ -27,6 +28,6 @@ class GoodbyeSpec extends CompileSpec {
   }
 
   "simple goodbye compiles to" >> {
-    q"def f {}; example.goodbye(f)" must compile.to(contain(q"f", q"0"))
+    q"def f {}; example.goodbye(f)" must compile.to(haveDescendant(q"f", q"0"))
   }
 }

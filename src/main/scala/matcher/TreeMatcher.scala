@@ -16,6 +16,12 @@ class CompiledTreeMatcher(matcher: Matcher[Tree]) extends Matcher[CompileResult]
   }
 }
 
+class FakeTreeMatcher[T](matcher: Matcher[Tree]) extends Matcher[T] {
+  override def apply[S <: T](expectable: Expectable[S]): MatchResult[S] = {
+    matcher.apply(expectable.asInstanceOf[Expectable[Tree]]).asInstanceOf[MatchResult[S]]
+  }
+}
+
 class TreeStringMatcher(matcher: Matcher[String]) extends Matcher[Tree] {
   override def apply[S <: Tree](expectable: Expectable[S]): MatchResult[S] = {
     val matched = matcher(createExpectable(showCode(expectable.value)))
@@ -38,27 +44,29 @@ trait TreeChildMatcher extends Matcher[Tree] {
   }
 }
 
-class TreeHasChildrenMatcher(val matcher: Matcher[Seq[Tree]]) extends TreeChildMatcher {
+class TreeChildrenMatcher(val matcher: Matcher[Seq[Tree]]) extends TreeChildMatcher {
   val children = (tree: Tree) => tree.children
   val describeFail = FailDescription.shouldHaveChild _
 }
 
-class TreeContainsMatcher(val matcher: Matcher[Seq[Tree]]) extends TreeChildMatcher {
+class TreeDescendantsMatcher(val matcher: Matcher[Seq[Tree]]) extends TreeChildMatcher {
   val children = (tree: Tree) => tree.collect { case t => t }
   val describeFail = FailDescription.shouldContain _
 }
 
 trait TreeMatchers {
-  private def treeToContainsTreeMatcher(matcher: Matcher[Tree]): Matcher[Seq[Tree]] = {
-    val check = ValueChecks.matcherIsValueCheck(matcher)
-    TraversableMatchers.contain(check)
+  private def newTreeChildMatcher(matchers: Seq[Matcher[Tree]], construct: Matcher[Seq[Tree]] => Matcher[Tree]): Matcher[Tree] = {
+    matchers.map { matcher =>
+      val check = ValueChecks.matcherIsValueCheck(matcher)
+      construct(TraversableMatchers.contain(check))
+    }.fold(new AlwaysMatcher[Tree])((a,b) => a and b)
   }
 
-  def beEqualTo(tree: Tree) = new TreeStringMatcher(new BeEqualTo(showCode(tree)))
-  def haveChild(matchers: Matcher[Tree]*) = matchers.map(treeToContainsTreeMatcher).map(m => new TreeHasChildrenMatcher(m)).fold(new AlwaysMatcher[Tree])((a,b) => a and b)
-  def contain(matchers: Matcher[Tree]*) = matchers.map(treeToContainsTreeMatcher).map(m => new TreeContainsMatcher(m)).fold(new AlwaysMatcher[Tree])((a,b) => a and b)
-  def haveChild(matcher: Matcher[Seq[Tree]]) = new TreeHasChildrenMatcher(matcher)
-  def contain(matcher: Matcher[Seq[Tree]]) = new TreeContainsMatcher(matcher)
+  def haveTree(tree: Tree) = new TreeStringMatcher(new BeEqualTo(showCode(tree)))
+  def haveChild(matchers: Matcher[Tree]*) = newTreeChildMatcher(matchers, m => new TreeChildrenMatcher(m))
+  def haveDescendant(matchers: Matcher[Tree]*) = newTreeChildMatcher(matchers, m => new TreeDescendantsMatcher(m))
+  def haveChild(matcher: Matcher[Seq[Tree]]) = new TreeChildrenMatcher(matcher)
+  def haveDescendant(matcher: Matcher[Seq[Tree]]) = new TreeDescendantsMatcher(matcher)
 }
 
 object TreeMatchers extends TreeMatchers

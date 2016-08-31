@@ -1,16 +1,17 @@
 package example
 
-import macroni.{CompileSpec, TreeSpec, ContextMock}
+import macroni.{CompileSpec, TreeSpec}
+import macroni.whitebox.ContextMock
 
 class HelloTranslatorSpec extends TreeSpec with ContextMock {
-  import whiteboxContext.universe._
+  import context.universe._
 
-  val translator = HelloTranslator(whiteboxContext)
+  val translator = HelloTranslator(context)
 
   "simple hello compiles to" >> {
-    translator.translate(q"""object A""") must beEqualTo(
+    translator.translate(q"""object A""") must haveTree(
       q"""object A { def hello: String = "hello" }"""
-    ).orPending
+    )
   }
 }
 
@@ -31,7 +32,7 @@ class HelloSpec extends CompileSpec {
 
   "simple hello compiles containing" >> {
     q"""@example.hello object A""" must compile.to(
-      contain(q"""String""") or not(contain(q"""Int""")),
+      haveDescendant(q"""String""") or not(haveDescendant(q"""Int""")),
       haveChild(haveChild(q"""def hello: String = "hello""""))
     )
   }
@@ -48,8 +49,8 @@ class HelloSpec extends CompileSpec {
     q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must warn
     q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.canWarn
     q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarning
-    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must warn(contain("erasure")).to(contain(q""""hello""""))
-    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarning(contain("erasure")).to(contain(q""""hello""""))
+    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must warn(contain("erasure")).to(haveDescendant(q""""hello""""))
+    q"@example.hello object A { def bar[T](l: T) = 1.isInstanceOf[T] }" must compile.withWarning(contain("erasure")).to(haveDescendant(q""""hello""""))
   }
 
   "detect multiple warnings" >> {
