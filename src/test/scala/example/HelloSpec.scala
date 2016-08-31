@@ -8,7 +8,7 @@ class HelloTranslatorSpec extends TreeSpec with ContextMock {
 
   val translator = HelloTranslator(context)
 
-  "simple hello compiles to" >> {
+  "hello translator translates" >> {
     translator.translate(q"""object A""") must beEqualToTree(
       q"""object A { def hello: String = "hello" }"""
     )

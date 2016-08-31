@@ -4,7 +4,7 @@ import macroni.matcher._
 import org.specs2.matcher._
 
 class BlackboxContextMockSpec extends TreeSpec with blackbox.ContextMock {
-  "backbox context tree equals same tree" >> {
+  "blackbox context tree equals same tree" >> {
     import context.universe._
 
     val tree = q"val golum = true"

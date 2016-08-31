@@ -8,7 +8,7 @@ class GoodbyeTranslatorSpec extends TreeSpec with ContextMock {
 
   val translator = GoodbyeTranslator(context)
 
-  "simple hello compiles to" >> {
+  "goodbye translator translates" >> {
     translator.translate(q"""println("bye")""") must beEqualToTree(
       q"""new example.Goodbye {
         def make() {
