@@ -1,11 +1,10 @@
-name := "derive"
+name := "macroni"
+organization := "com.github.cornerman"
 version := "0.0.1"
 
 scalaVersion := "2.11.8"
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
-
-resolvers += "Scalaz Bintray Repo" at "https://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++=
   "org.scala-lang" % "scala-compiler" % scalaVersion.value ::
