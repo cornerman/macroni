@@ -42,7 +42,7 @@ object Compiler {
     val toolbox = currentMirror.mkToolBox(reporter, Config.options)
 
     Try(toolbox.typecheck(tree)) match {
-      case Success(typedTree) => CompileResult(tree, toolbox.untypecheck(typedTree), reporter)
+      case Success(typedTree) => CompileResult(tree, typedTree, reporter)
       case Failure(e) => CompileResult(tree, e, reporter)
     }
   }
