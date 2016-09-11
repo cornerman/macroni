@@ -6,6 +6,8 @@ import scala.reflect.runtime.universe.Tree
 import scala.tools.reflect.{FrontEnd, ToolBox}
 import scala.util.{Try, Success, Failure}
 
+import macroni.macros.CompilerSettings
+
 //TODO: needed because FrontEnd stores `infos` in a LinkedHashSet.
 // Thus, messages with the same hashcode are lost. This can happen
 // in quasiquotes, where the position may be NoPosition.
@@ -29,11 +31,8 @@ class Reporter extends InfoListFrontEnd {
 }
 
 object Config {
-  private val paradisePath = System.getProperty("user.home") + "/.ivy2/cache/org.scalamacros/paradise_2.11.8/jars/paradise_2.11.8-2.1.0.jar"
-  private val paradiseJar = if (new java.io.File(paradisePath).exists) Some(paradisePath) else None
-  private val paradiseOptions = paradiseJar.map(path => s"-Xplugin-require:macroparadise -Xplugin:$path").getOrElse("")
-
-  val options = paradiseOptions
+  val compilerPlugins = CompilerSettings().filter(_.startsWith("-Xplugin")).mkString(" ")
+  val options = compilerPlugins
 }
 
 object Compiler {
@@ -42,7 +41,7 @@ object Compiler {
     val toolbox = currentMirror.mkToolBox(reporter, Config.options)
 
     Try(toolbox.typecheck(tree)) match {
-      case Success(typedTree) => CompileResult(tree, typedTree, reporter)
+      case Success(typedTree) => CompileResult(tree, toolbox.untypecheck(typedTree), reporter)
       case Failure(e) => CompileResult(tree, e, reporter)
     }
   }
