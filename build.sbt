@@ -23,7 +23,7 @@ lazy val macros = project.in(file("macros"))
   )
 
 lazy val core = project.in(file("core"))
-  .dependsOn(macros % "compile-internal")
+  .dependsOn(macros % "compile-internal;test-internal")
   .settings(commons: _*)
   .settings(
     name := "macroni",
@@ -39,4 +39,3 @@ lazy val core = project.in(file("core"))
     // include the macro sources in the main source jar
     mappings in (Compile, packageSrc) ++= mappings.in(macros, Compile, packageSrc).value
   )
-
