@@ -16,7 +16,9 @@ class CompileMatcherSpec extends CompileSpec {
   }
 
   val failMatch = failMatcher(s => AnyMatchers.beEqualTo(s)) _
-  val failMatchLike = failMatcher(s => StringMatchers.matching("(.|\\n)*".r)) _
+  val failMatchLike = failMatcher(s => StringMatchers.matching(s.r)) _
+  val wildcard = "(.|\\n)*"
+  def fuzzy(msg: String) = wildcard + msg + wildcard
 
   val info = Info(NoPosition, "some info")
   val warning = Warning(NoPosition, "some warning")
@@ -44,19 +46,19 @@ class CompileMatcherSpec extends CompileSpec {
   "success with warning mismatch fails" >> {
     val src = q"object A"
     val success = CompileSuccess(src, src, Seq.empty)
-    (success must compile.withWarning("meh")) must failMatchLike(FailDescription.compilerWarnings(src, "(.|\n)*"))
+    (success must compile.withWarning("meh")) must failMatchLike(FailDescription.compilerWarnings(src, wildcard))
   }
 
   "success with less warnings fails" >> {
     val src = q"object A"
     val success = CompileSuccess(src, src, Seq(warning))
-    (success must compile.withWarnings("some warning", "some warning")) must failMatchLike(FailDescription.compilerWarnings(src, "(.|\n)*"))
+    (success must compile.withWarnings("some warning", "some warning")) must failMatchLike(FailDescription.compilerWarnings(src, fuzzy("some warning")))
   }
 
   "success with more warnings fails" >> {
     val src = q"object A"
     val success = CompileSuccess(src, src, Seq(warning, warning))
-    (success must compile.withWarning("some warning")) must failMatchLike(FailDescription.compilerWarnings(src, "(.|\n)*"))
+    (success must compile.withWarning("some warning")) must failMatchLike(FailDescription.compilerWarnings(src, fuzzy("some warning")))
   }
 
   "success compiles to" >> {
@@ -91,37 +93,37 @@ class CompileMatcherSpec extends CompileSpec {
   "failure with warning mismatch fails" >> {
     val src = q"object A"
     val failure = CompileFailure(src, Seq(error), Seq.empty)
-    (failure must abort.withWarning("meh")) must failMatchLike(FailDescription.compilerErrors(src, "(.|\n)*"))
+    (failure must abort.withWarning("meh")) must failMatchLike(FailDescription.compilerWarnings(src, wildcard))
   }
 
   "failure with less warnings fails" >> {
     val src = q"object A"
     val failure = CompileFailure(src, Seq(error), Seq(warning))
-    (failure must abort.withWarnings("some warning", "some warning")) must failMatchLike(FailDescription.compilerErrors(src, "(.|\n)*"))
+    (failure must abort.withWarnings("some warning", "some warning")) must failMatchLike(FailDescription.compilerWarnings(src, wildcard))
   }
 
   "failure with more warnings fails" >> {
     val src = q"object A"
     val failure = CompileFailure(src, Seq(error), Seq(warning, warning))
-    (failure must abort.withWarning("some warning")) must failMatchLike(FailDescription.compilerErrors(src, "(.|\n)*"))
+    (failure must abort.withWarning("some warning")) must failMatchLike(FailDescription.compilerWarnings(src, wildcard))
   }
 
   "failure with error mismatch fails" >> {
     val src = q"object A"
     val failure = CompileFailure(src, Seq(error), Seq.empty)
-    (failure must compile.withError("meh")) must failMatchLike(FailDescription.compilerErrors(src, "(.|\n)*"))
+    (failure must compile.withError("meh")) must failMatchLike(FailDescription.compilerErrors(src, fuzzy("meh")))
   }
 
   "failure with less errors fails" >> {
     val src = q"object A"
     val failure = CompileFailure(src, Seq(error), Seq.empty)
-    (failure must abort.withErrors("some error", "some error")) must failMatchLike(FailDescription.compilerErrors(src, "(.|\n)*"))
+    (failure must abort.withErrors("some error", "some error")) must failMatchLike(FailDescription.compilerErrors(src, fuzzy("some error")))
   }
 
   "failure with more errors fails" >> {
     val src = q"object A"
     val failure = CompileFailure(src, Seq(error, error), Seq.empty)
-    (failure must abort.withError("some error")) must failMatchLike(FailDescription.compilerErrors(src, "(.|\n)*"))
+    (failure must abort.withError("some error")) must failMatchLike(FailDescription.compilerErrors(src, wildcard))
   }
 
   "failure compiles to fails" >> {
