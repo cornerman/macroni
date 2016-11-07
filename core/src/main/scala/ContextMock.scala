@@ -6,12 +6,11 @@ import org.specs2.mock.mockito.MocksCreation
 import scala.reflect.{ClassTag, runtime}
 import scala.reflect.macros.{blackbox => macroBlackbox, whitebox => macroWhitebox, Universe => macroUniverse}
 
-import matcher.{TreeMatchers, FakeTreeMatcher}
-
-trait MockedContext[C <: macroBlackbox.Context] extends Mockito {
+trait MockedContext[C <: macroBlackbox.Context] {
   val context: C
 
   import context.universe.Tree
+  import matcher.FakeTreeMatcher
 
   implicit def TreeToTree(tree: Tree) = tree.asInstanceOf[runtime.universe.Tree]
   implicit def TreeMatcherToTreeMatcher(matcher: Matcher[runtime.universe.Tree]) = new FakeTreeMatcher[Tree](matcher)
