@@ -11,7 +11,7 @@ lazy val commons = Seq(
     "-Ywarn-unused" ::
     Nil,
     organization := "com.github.cornerman",
-    version := "0.0.1"
+    version := "0.0.1-SNAPSHOT"
 )
 
 lazy val macros = project.in(file("macros"))
