@@ -92,6 +92,10 @@ class CompilingCodeSpec extends CompileSpec {
       haveChildTree(haveChildTree(q"""def hello: String = "hello""""))
     )
   }
+
+  "wrong hello aborts" >> {
+    q"@hello object A { val foo: String = 2 }" must abort(contain("type mismatch"))
+  }
 }
 
 ```
