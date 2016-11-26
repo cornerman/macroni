@@ -5,6 +5,7 @@ import scala.reflect.runtime.currentMirror
 import scala.reflect.runtime.universe.Tree
 import scala.tools.reflect.{FrontEnd, ToolBox}
 import scala.util.{Try, Success, Failure}
+import scala.collection.mutable
 
 import macroni.macros.CompilerSettings
 
@@ -12,7 +13,7 @@ import macroni.macros.CompilerSettings
 // Thus, messages with the same hashcode are lost. This can happen
 // in quasiquotes, where the position may be NoPosition.
 trait InfoListFrontEnd extends FrontEnd {
-  val infoList = new scala.collection.mutable.ArrayBuffer[Info]
+  val infoList = new mutable.ArrayBuffer[Info]
 
   override def log(pos: Position, msg: String, severity: Severity) {
     super.log(pos, msg, severity)
@@ -25,7 +26,7 @@ trait InfoListFrontEnd extends FrontEnd {
   }
 }
 
-class Reporter extends InfoListFrontEnd {
+class SilentReporter extends InfoListFrontEnd {
   def display(info: Info) {}
   def interactive() {}
 }
@@ -37,7 +38,7 @@ object Config {
 
 object Compiler {
   def apply(tree: Tree): CompileResult = {
-    val reporter = new Reporter
+    val reporter = new SilentReporter
     val toolbox = currentMirror.mkToolBox(reporter, Config.options)
 
     Try(toolbox.typecheck(tree)) match {

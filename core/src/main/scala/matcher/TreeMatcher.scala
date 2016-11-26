@@ -4,7 +4,6 @@ import macroni.compiler.{CompileResult, CompileSuccess, CompileFailure}
 import macroni.helper.FailDescription
 
 import org.specs2.matcher._
-import scala.compat.Platform.EOL
 import scala.reflect.runtime.universe.{showCode, Tree}
 
 class CompiledTreeMatcher(matcher: Matcher[Tree]) extends Matcher[CompileResult] {

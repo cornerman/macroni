@@ -1,10 +1,9 @@
 package macroni
 
-import org.specs2.matcher.Matcher
 import org.specs2.mock.Mockito
 import scala.reflect.{ClassTag, runtime}
 import scala.reflect.macros.Universe
-import scala.reflect.macros.{blackbox,whitebox}
+import scala.reflect.macros.blackbox
 
 trait ContextMock extends Mockito {
   def mockContext[C <: blackbox.Context : ClassTag]: C = {
