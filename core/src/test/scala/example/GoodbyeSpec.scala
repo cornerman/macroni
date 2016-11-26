@@ -1,9 +1,11 @@
 package example
 
-import macroni.{CompileSpec, TreeSpec}
-import macroni.blackbox.ContextMock
+import macroni.{CompileSpec, TreeSpec, ContextMock}
+
+import scala.reflect.macros.blackbox
 
 class GoodbyeTranslatorSpec extends TreeSpec with ContextMock {
+  val context = mockContext[blackbox.Context]
   import context.universe._
 
   val translator = GoodbyeTranslator(context)

@@ -16,12 +16,13 @@ class CompiledTreeMatcher(matcher: Matcher[Tree]) extends Matcher[CompileResult]
   }
 }
 
-class FakeTreeMatcher[T](matcher: Matcher[Tree]) extends Matcher[T] {
+class CovertTreeMatcher[T](matcher: Matcher[Tree], func: T => Tree) extends Matcher[T] {
   override def apply[S <: T](expectable: Expectable[S]): MatchResult[S] = {
-    matcher.apply(expectable.asInstanceOf[Expectable[Tree]]).asInstanceOf[MatchResult[S]]
+    matcher.apply(createExpectable(func(expectable.value))).asInstanceOf[MatchResult[S]]
   }
 }
 
+class BeEqualToTreeMatcher(tree: Tree) extends TreeStringMatcher(new BeEqualTo(showCode(tree)))
 class TreeStringMatcher(matcher: Matcher[String]) extends Matcher[Tree] {
   override def apply[S <: Tree](expectable: Expectable[S]): MatchResult[S] = {
     val matched = matcher(createExpectable(showCode(expectable.value)))
@@ -62,9 +63,9 @@ trait TreeMatchers {
     }.fold(new AlwaysMatcher)(_ and _)
   }
 
-  def beEqualToTree(tree: Tree) = new TreeStringMatcher(new BeEqualTo(showCode(tree)))
-  def haveChildTree(matchers: Matcher[Tree]*) = newTreeChildMatcher(matchers, m => new TreeChildrenMatcher(m))
-  def containTree(matchers: Matcher[Tree]*) = newTreeChildMatcher(matchers, m => new TreeDescendantsMatcher(m))
+  def beEqualToTree(tree: Tree) = new BeEqualToTreeMatcher(tree)
+  def haveChildTree(matchers: Matcher[Tree]*) = newTreeChildMatcher(matchers, new TreeChildrenMatcher(_))
+  def containTree(matchers: Matcher[Tree]*) = newTreeChildMatcher(matchers, new TreeDescendantsMatcher(_))
   def haveChildTree(matcher: Matcher[Seq[Tree]]) = new TreeChildrenMatcher(matcher)
   def containTree(matcher: Matcher[Seq[Tree]]) = new TreeDescendantsMatcher(matcher)
 }

@@ -1,4 +1,6 @@
 lazy val commons = Seq(
+  organization := "com.github.cornerman",
+  version := "0.0.1-SNAPSHOT",
   scalaVersion := "2.11.8",
   scalacOptions ++=
     "-encoding" :: "UTF-8" ::
@@ -9,9 +11,7 @@ lazy val commons = Seq(
     "-language:_" ::
     "-Xlint:_" ::
     "-Ywarn-unused" ::
-    Nil,
-    organization := "com.github.cornerman",
-    version := "0.0.1-SNAPSHOT"
+    Nil
 )
 
 lazy val macros = project.in(file("macros"))

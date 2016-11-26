@@ -1,19 +1,21 @@
-import macroni.{blackbox, whitebox, TreeSpec}
+import macroni.{ContextMock, TreeSpec}
 import macroni.matcher._
 
+import org.specs2.mock.Mockito
+import scala.reflect.macros.{blackbox, whitebox}
 import org.specs2.matcher._
 
-class BlackboxContextMockSpec extends TreeSpec with blackbox.ContextMock {
+class ContextMockSpec extends TreeSpec with ContextMock {
   "blackbox context tree equals same tree" >> {
+    val context = mockContext[blackbox.Context]
     import context.universe._
 
     val tree = q"val golum = true"
     tree should beEqualToTree(q"val golum = true")
   }
-}
 
-class WhiteboxContextMockSpec extends TreeSpec with whitebox.ContextMock {
   "whitebox context tree equals same tree" >> {
+    val context = mockContext[whitebox.Context]
     import context.universe._
 
     val tree = q"val golum = true"

@@ -1,9 +1,11 @@
 package example
 
-import macroni.{CompileSpec, TreeSpec}
-import macroni.whitebox.ContextMock
+import macroni.{CompileSpec, TreeSpec, ContextMock}
+
+import scala.reflect.macros.whitebox
 
 class HelloTranslatorSpec extends TreeSpec with ContextMock {
+  val context = mockContext[whitebox.Context]
   import context.universe._
 
   val translator = HelloTranslator(context)
