@@ -1,30 +1,26 @@
-lazy val commons = Seq(
-  organization := "com.github.cornerman",
-  version := "0.0.1-SNAPSHOT",
-  scalaVersion := "2.11.8",
-  scalacOptions ++=
-    "-encoding" :: "UTF-8" ::
-    "-unchecked" ::
-    "-deprecation" ::
-    "-explaintypes" ::
-    "-feature" ::
-    "-language:_" ::
-    "-Xlint:_" ::
-    "-Ywarn-unused" ::
-    Nil
-)
+version in ThisBuild := "0.1.0-SNAPSHOT"
+
+scalaVersion in ThisBuild := "2.11.8"
+
+scalacOptions in ThisBuild ++=
+  "-encoding" :: "UTF-8" ::
+  "-unchecked" ::
+  "-deprecation" ::
+  "-explaintypes" ::
+  "-feature" ::
+  "-language:_" ::
+  "-Xlint:_" ::
+  "-Ywarn-unused" ::
+  Nil
 
 lazy val macros = project.in(file("macros"))
-  .settings(commons: _*)
   .settings(
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-    publish := {},
-    publishLocal := {}
+    publishArtifact := false
   )
 
 lazy val core = project.in(file("core"))
   .dependsOn(macros % "compile-internal;test-internal")
-  .settings(commons: _*)
   .settings(
     name := "macroni",
     addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" % "test" cross CrossVersion.full),
@@ -39,3 +35,28 @@ lazy val core = project.in(file("core"))
     // include the macro sources in the main source jar
     mappings in (Compile, packageSrc) ++= mappings.in(macros, Compile, packageSrc).value
   )
+
+pgpSecretRing in Global := file("secring.gpg")
+pgpPublicRing in Global := file("pubring.gpg")
+organization in Global := "com.github.cornerman"
+
+pomExtra := {
+  <url>https://github.com/cornerman/macroni</url>
+  <licenses>
+    <license>
+      <name>The MIT license</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+    </license>
+  </licenses>
+  <scm>
+    <url>https://github.com/cornerman/macroni</url>
+    <connection>scm:git:git@github.com:cornerman/macroni.git</connection>
+  </scm>
+  <developers>
+    <developer>
+      <id>jkaroff</id>
+      <name>Johannes Karoff</name>
+      <url>https://github.com/cornerman</url>
+    </developer>
+  </developers>
+}
