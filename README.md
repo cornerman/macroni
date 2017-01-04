@@ -8,14 +8,11 @@ Provides specs2 matchers and helpers for compiling/matching trees as well as moc
 
 ## Usage
 
-First publish macroni locally:
+Dependency in build.sbt:
 ```
-$ sbt publish-local
-```
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
-Then use it in your own project:
-```
-libraryDependencies += "com.github.cornerman" %% "macroni" % "0.0.1-SNAPSHOT" % "test"
+libraryDependencies += "com.github.cornerman" %% "macroni" % "0.1.0-SNAPSHOT" % "test"
 ```
 
 ### Tree Matchers
