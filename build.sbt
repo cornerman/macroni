@@ -36,9 +36,11 @@ lazy val core = project.in(file("core"))
     mappings in (Compile, packageSrc) ++= mappings.in(macros, Compile, packageSrc).value
   )
 
+organization in Global := "com.github.cornerman"
+
 pgpSecretRing in Global := file("secring.gpg")
 pgpPublicRing in Global := file("pubring.gpg")
-organization in Global := "com.github.cornerman"
+pgpPassphrase in Global := Some("".toCharArray)
 
 pomExtra := {
   <url>https://github.com/cornerman/macroni</url>
