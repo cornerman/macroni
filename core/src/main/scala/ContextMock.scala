@@ -1,9 +1,12 @@
 package macroni
 
 import org.specs2.mock.Mockito
+import org.specs2.matcher.Matcher
 import scala.reflect.{ClassTag, runtime}
 import scala.reflect.macros.Universe
 import scala.reflect.macros.blackbox
+import macroni.compiler.CompileResult
+import macroni.matcher.CompilingTreeMatcher
 
 trait ContextMock extends Mockito {
   def mockContext[C <: blackbox.Context : ClassTag]: C = {
@@ -13,6 +16,7 @@ trait ContextMock extends Mockito {
   }
 
   implicit def MacroToRuntimeTree(tree: Universe#Tree): runtime.universe.Tree = tree.asInstanceOf[runtime.universe.Tree]
+  implicit def MatcherToCompilingUniverseTreeMatcher(matcher: Matcher[CompileResult]): Matcher[Universe#Tree] = new CompilingTreeMatcher(matcher).asInstanceOf[Matcher[Universe#Tree]]
 }
 
 object ContextMock extends ContextMock
