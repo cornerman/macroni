@@ -28,8 +28,8 @@ lazy val core = project.in(file("core"))
     libraryDependencies ++=
       "org.scala-lang" % "scala-compiler" % scalaVersion.value ::
       "org.scala-lang" % "scala-reflect" % scalaVersion.value ::
-      "org.specs2" %% "specs2-core" % "3.8.4" ::
-      "org.specs2" %% "specs2-mock" % "3.8.4" ::
+      "org.specs2" %% "specs2-core" % "3.8.9" ::
+      "org.specs2" %% "specs2-mock" % "3.8.9" ::
       Nil,
     // include the macro classes and resources in the main jar
     mappings in (Compile, packageBin) ++= mappings.in(macros, Compile, packageBin).value,
