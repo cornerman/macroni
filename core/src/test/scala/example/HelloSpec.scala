@@ -43,8 +43,6 @@ class HelloSpec extends CompileSpec {
     q"@example.hello object A { val hello = 1 }" must abort
     q"@example.hello object A { val hello = 1 }" must not(compile)
     q"@example.hello object A { val hello = 1 }" must compile.withError
-    q"@example.hello object A { val hello = 1 }" must abort(startWith("reflective typecheck has failed: method hello is defined twice"))
-    q"@example.hello object A { val hello = 1 }" must compile.withError(startWith("reflective typecheck has failed: method hello is defined twice"))
   }
 
   "detect warning" >> {

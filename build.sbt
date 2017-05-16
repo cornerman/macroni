@@ -1,6 +1,7 @@
 version in ThisBuild := "0.1.0-SNAPSHOT"
 
 scalaVersion in ThisBuild := "2.11.11"
+crossScalaVersions := Seq("2.11.11", "2.12.2")
 
 scalacOptions in ThisBuild ++=
   "-encoding" :: "UTF-8" ::
