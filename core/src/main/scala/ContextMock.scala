@@ -16,7 +16,7 @@ trait ContextMock extends Mockito {
   }
 
   implicit def MacroToRuntimeTree(tree: Universe#Tree): runtime.universe.Tree = tree.asInstanceOf[runtime.universe.Tree]
-  implicit def MatcherToCompilingUniverseTreeMatcher(matcher: Matcher[CompileResult]): Matcher[Universe#Tree] = new CompilingTreeMatcher(matcher).asInstanceOf[Matcher[Universe#Tree]]
+  implicit def RuntimeToMacroTreeMatcher[T <% Matcher[runtime.universe.Tree]](matcher: T): Matcher[Universe#Tree] = implicitly[Matcher[runtime.universe.Tree]](matcher).asInstanceOf[Matcher[Universe#Tree]]
 }
 
 object ContextMock extends ContextMock

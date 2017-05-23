@@ -15,12 +15,6 @@ class CompiledTreeMatcher(matcher: Matcher[Tree]) extends Matcher[CompileResult]
   }
 }
 
-class CovertTreeMatcher[T](matcher: Matcher[Tree], func: T => Tree) extends Matcher[T] {
-  override def apply[S <: T](expectable: Expectable[S]): MatchResult[S] = {
-    matcher.apply(createExpectable(func(expectable.value))).asInstanceOf[MatchResult[S]]
-  }
-}
-
 class BeEqualToTreeMatcher(tree: Tree) extends TreeStringMatcher(new BeEqualTo(showCode(tree)))
 class TreeStringMatcher(matcher: Matcher[String]) extends Matcher[Tree] {
   override def apply[S <: Tree](expectable: Expectable[S]): MatchResult[S] = {
